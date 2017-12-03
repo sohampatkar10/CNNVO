@@ -1,5 +1,3 @@
-
-
 class Train(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -31,10 +29,6 @@ class Train(torch.nn.Module):
         x = F.relu(self.conv5(x))
         x = self.max5(x)
         return x
-
-
-
-
 
 
 class TCNN_Train(torch.nn.Module):
@@ -143,103 +137,3 @@ class TCNN_Train(torch.nn.Module):
             #optimizer.step()
             #print(loss.data[0])
             return predicted_labels
-
-
-
-def train_labelled_class(image_left, image_right, labels, batch_size, image_size, time_stamp):
-
-    for d in data: 
-        x1 = data["img_l"]
-        x2 = data["img_r"]
-        y  = data["pose"]
-
-        model.train()
-            
-        x1 = autograd.Variable(image1_left)
-        x1= x1.view(batch_size,3,image_size,image_size)
-        #x1 =x1.cuda()
-
-        x2 = autograd.Variable(image2_right)
-        x2= x2.view(batch_size,3,image_size,image_size)
-        #x2=x2.cuda()
-
-        y = autograd.Variable(labels)
-        y = y.type(torch.FloatTensor)
-        #y =y.cuda()
-     
-        optimizer.zero_grad()
-        
-        y_hat_= model(x1, x2)
-        y_hat_= y_hat_.view(-1)
-        y1 = pose[:,1]
-        y2 = pose[:,2]
-        y3 = pose[:,3]
-        l1 = F.cross_entropy(y_hat_, y)
-        l2 = F.cross_entropy(y_hat_, y)
-        l3 = F.cross_entropy(y_hat_, y)
-        loss.backward()
-        optimizer.step()
-        print(loss.data[0])
-        return loss.data[0]
-
-# # def train_SFA(image_left, image_right, labels, batch_size, image_size,time_stamp):
-# def train_SFA(data, batch_size, image_size,):
-
-#     #Put the model on train mode 
-#     model.train()
-        
-#     x1 = autograd.Variable(image1_batch)
-#     x1 = x1.view(batch_size,3,image_size,image_size)
-#     x1 = x1.cuda()
-
-#     x2 = autograd.Variable(image2_batch)
-#     x2 = x2.view(batch_size,3,image_size,image_size)
-#     x2 = x2.cuda()
-    
-#     y = autograd.Variable(labels_batch)
-#     y = y.type(torch.FloatTensor)
-#     y = y.cuda()
- 
-#     optimizer.zero_grad()
-    
-#     f1 , f2= model(x1, x2)
-#     pdist = torch.nn.PairwiseDistance(p=2)
-#     x12= pdist(x1,x2)
-
-#     zero = autograd.Variable(torch.zeros(1))
-#     zero = zero.cuda()
-#     one  = autograd.Variable(torch.ones(1))
-#     one = one.cuda()
-
-#     temp_y = temp_y.view(batch_size,1)
-
-#     for i in range(batch_size): 
-#         if time_stamp > : 
-#             loss[i] = x12
-#         else : 
-#             loss[i]= one- torch.max(zero, one*10000 - x12)
-
-#     #loss = temp_y*temp_sqr + (one-y)*torch.max(zero, 1 - y_hat_)*torch.max(zero, 1 - y_hat_)
-#     #test = temp_y*temp_sqr
-#     #print(torch.mean(loss))
-#     loss= torch.sum(loss)
-#     loss.backward()
-#     optimizer.step()
-#     #print(test.size())
-#     #print(temp_y.size())
-#     #print(temp_sqr.size())
-#     print("Loss:",loss.data[0])
-#     #print("Distance Metric:", y_hat_)
-#     return loss.data[0]
-
-
-# plot function
-angles = G_to_rpy(G)
-a =[]
-a.append(angles[1])
-a.append(G[3,0])
-a.append(G[3,1])    
-plt.plot(np.array(a), '-', linewidth=2)
-plt.plot(np.array(pred_a), '-', linewidth=2)
-plt.plot()
-plt.plot()

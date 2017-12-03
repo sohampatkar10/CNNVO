@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from skimage import transform, utils
 
+
+
 class DataParser(Dataset):
   '''
   Class for parsing data

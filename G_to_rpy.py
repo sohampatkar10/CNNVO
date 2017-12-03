@@ -1,5 +1,6 @@
 # Determine Roll, Pitch and Yaw from the Transformation Matrix 
 import math 
+
 def G_to_rpy(G):
 	R =np.zeros((3,3), dtype= 'float')
 	R= G[:3,:3]
@@ -30,3 +31,4 @@ def rotationMatrixToEulerAngles(R) :
         z = 0
  
     return np.array([x, y, z])
+
