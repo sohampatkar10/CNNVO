@@ -3,62 +3,90 @@ import cv2
 import glob
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-from skimage import transform, utils
-
-
+from skimage import transform, util
+import G_to_rpy as G
 
 class DataParser(Dataset):
-  '''
-  Class for parsing data
-  Args:
+    '''
+    Class for parsing data
+    Args:
     root_dir: root directory of file
     sequence: sequence from which data to load
-  '''
+    '''
 
-  def __init__(self, root_dir, sequence):
-    print "loading data from sequence", sequence
-    # Right images
-    self.filenames_im2 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_2/*.png')]
-    self.filenames_im2 = self.filenames_im2[0]
-    self.filenames_im2.sort()
+    def __init__(self, sequence, root_dir="./kitti_datasets"):
+        print "loading data from sequence", sequence
+        # Right images
+        self.filenames_im2 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_2/*.png')]
+        self.filenames_im2 = self.filenames_im2[0]
+        self.filenames_im2.sort()
 
-    # Left images
-    filenames_im3 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_3/*.png')]
-    self.filenames_im3 = self.filenames_im3[0]
-    self.filenames_im3.sort()
+        # Left images
+        self.filenames_im3 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_3/*.png')]
+        self.filenames_im3 = self.filenames_im3[0]
+        self.filenames_im3.sort()
 
-    # Timestamps
-    filename_times = root_dir + '/sequences/'+sequence + '/times.txt'
-    time_data = open(filename_times,'r')
-    time = time_data.readlines()
-    self.times = np.zeros((len(time),1), dtype=np.float)
-    for i in range(len(time)):
-        self.times[i] = time[i].split()
+        # Timestamps
+        filename_times = root_dir + '/sequences/'+sequence + '/times.txt'
+        time_data = open(filename_times,'r')
+        time = time_data.readlines()
+        self.times = np.zeros((len(time),1), dtype=np.float)
+        for i in range(len(time)):
+            self.times[i] = time[i].split()
 
-    # Poses
-    filename_poses = root_dir + '/poses/'+sequence + '.txt'
-    pose_data = open(filename_poses, 'r')
-    pose_str = pose_data.readlines()
-    self.poses = poses = np.zeros((len(pose),16), dtype=np.float)
-    for i in range(len(pose_str)):
-      self.poses[i][0:12] = pose_str[i].split()
-      self.poses[i][12:16] = [0.0, 0.0, 0.0, 1.0]
+        # Poses
+        filename_poses = root_dir + '/poses/'+sequence + '.txt'
+        pose_data = open(filename_poses, 'r')
+        pose_str = pose_data.readlines()
+        self.poses = np.zeros((len(pose_str),16), dtype=np.float)
+        for i in range(len(pose_str)):
+            self.poses[i][0:12] = pose_str[i].split()
+            self.poses[i][12:16] = [0.0, 0.0, 0.0, 1.0]
 
-  def __len__(self):
-    return self.times.shape[0]
+    def __len__(self):
+        return self.times.shape[0]
 
-  def __getitem__(self,idx):
+    def __getitem__(self,idx):
 
-    img_r = cv2.imread(self.filenames_im2[idx])
-    img_r = transform.rescale(img_r, 0.2)
+        # frame at timestep t 
+        img_r1 = cv2.imread(self.filenames_im2[idx])
+        img_r1 = cv2.resize(img_r1, (227, 227))
 
-    img_l = cv2.imread(self.filenames_im3[idx])
-    img_l = transform.rescale(img_l, 0.2)
+        img_l1 = cv2.imread(self.filenames_im3[idx])
+        img_l1 = cv2.resize(img_l1, (227, 227))
 
-    pose = self.poses[i].reshape(4,4)
-    time = self.times[i]
+        # frame at timestep t+1
+        img_r2 = cv2.imread(self.filenames_im2[idx+1])
+        img_r2 = cv2.resize(img_r2, (227, 227))
 
-    data = {"img_l" : img_l, "img_r" : img_r, "pose" : pose, "time" : time}
-    return data
+        img_l2 = cv2.imread(self.filenames_im3[idx+1])
+        img_l2 = cv2.resize(img_l2, (227, 227))
 
+        gt = self.poses[idx].reshape(4,4)
+        gt_1 = self.poses[idx+1].reshape(4,4)
 
+        dR  = np.dot(np.linalg.inv(gt[:3, :3]), gt_1[:3,:3])
+        dx = gt[0][3] - gt_1[0][3]
+        dy = gt[2][3] - gt_1[2][3]
+        th = G.G_to_rpy(dR)[2]*180/3.14
+
+        #  Bin transform into classes
+        NUM_XY_CLASSES = 20
+        NUM_TH_CLASSES = 20
+
+#         print "dx = ", dx, "dy = ", dy, "th = ", th
+        for xy in range(NUM_XY_CLASSES):
+            if (3.0/20.0*(xy - 0.5) <= dx + 1.5 < 3.0/20.0*(xy + 0.5)):
+                lx = xy
+            if (3.0/20.0*(xy - 0.5) <= dy + 1.5 < 3.0/20.0*(xy + 0.5)):
+                lz = xy
+
+        for t in range(NUM_TH_CLASSES):
+            if (2.4/20.0*(t - 0.5) <= th + 1.2 < 2.4/20.0*(t + 0.5)):
+                lt = t
+
+        dt = self.times[idx+1] - self.times[idx]
+
+        data = {"img_l1": img_l1, "img_r1": img_r1, "img_l2": img_l2, "img_r2": img_r2, "pose": (lx, lz, lt), "dt": dt}
+
+        return data
