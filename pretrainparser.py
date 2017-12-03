@@ -5,8 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 from skimage import transform
 
 class PreTrainParser():
-    def __init__(self):
-        self.mnist = torchvision.datasets.MNIST('../',download=True, train=True)
+    def __init__(self, train = True):
+        self.mnist = torchvision.datasets.CIFAR10('../',download=True, train=train)
         
     def __len__(self):
         return len(self.mnist)
