@@ -1,5 +1,3 @@
-
-
 class Train(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -106,7 +104,7 @@ class TCNN_Train(torch.nn.Module):
         for d in data: 
             x1 = data["img_l"]
             x2 = data["img_r"]
-            labels  = data["pose"]
+            labels  = data["tf"]
 
             model.train()
                 
