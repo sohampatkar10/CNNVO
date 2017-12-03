@@ -6,13 +6,13 @@ from skimage import transform
 
 class PreTrainParser():
     def __init__(self):
-        self.mnist = torchvision.datasets.MNIST('./', train=True)
+        self.mnist = torchvision.datasets.MNIST('../',download=True, train=True)
         
     def __len__(self):
         return len(self.mnist)
     
     def __getitem__(self, idx):
-        im1 = np.array(mnist[0][0])
+        im1 = np.array(self.mnist[0][0])
 
         # Generate transform
         rx = np.random.random()
@@ -31,7 +31,7 @@ class PreTrainParser():
 
         #  Bin transform into classes
         NUM_XY_CLASSES = 7
-        NUM_TH_CLASSES = 20
+        NUM_TH_CLASSES = 21
 
         for xy in range(NUM_XY_CLASSES):
             if (xy - 0.5 <= rx*6.0 < xy + 0.5):
@@ -43,6 +43,6 @@ class PreTrainParser():
             if (t*3.0 - 1.5 <= rt*60.0 < t*3.0 + 1.5):
                 lt = t
 
-        dict = {"img1": im1, "img2": im2, "tf":(lx, ly, lt)}
+        dict = {"img1": im1, "img2": im2, "tf":np.array([lx, ly, lt])}
 
         return dict
