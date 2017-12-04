@@ -21,7 +21,7 @@ class PreTrainParser():
 
         dx = int(6.0*rx - 3.0)
         dy = int(6.0*ry - 3.0)
-        th = 60.0*rt - 30.0
+        th = 60.0*rt - 30.0 
 
         M1 = cv2.getRotationMatrix2D((14,14), th, 1)
         im2= cv2.warpAffine(im1, M1, (28, 28))
@@ -42,9 +42,9 @@ class PreTrainParser():
             if (t*3.0 - 1.5 <= rt*60.0 < t*3.0 + 1.5):
                 lt = t
 
-        im1 = im1/(np.max(im1)-np.min(im1))
-        im2 = im2/(np.max(im2)-np.min(im2))
-        dict = {"img1": im1, "img2": im2, "tf":np.array([lx, ly, lt])}
+        #im1 = im1/(np.max(im1)-np.min(im1))
+        #im2 = im2/(np.max(im2)-np.min(im2))
+        d = {"img1": im1, "img2": im2, "lx":lx, "ly": ly, "lt":lt ,"digit": self.cifar[idx][1] }
         #dict = {"img1": im1, "img2": im2, "tf":np.array([2, 3, 15])}
 
-        return dict
+        return d
