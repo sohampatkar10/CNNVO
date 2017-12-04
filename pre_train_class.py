@@ -25,25 +25,47 @@ class PreTrain(torch.nn.Module):
         #drop = torch.nn.Dropout(p=0.5)
           
     def forward(self, x1, x2 ):
+       
+        #print(x2)
         # Features for the x1
-        x1 = F.relu(self.conv1(x1))
+
+        x1 =self.conv1(x1)
+        #print("Layer 1")
+        #print(x1)
+
+        x1 = F.relu(x1)
+        #print("Layer 2")
+        #print(x1)
+
         x1 = self.max1(x1)
+        #print("Layer 3")
+        #print(x1)
         
         x1 = F.relu(self.conv2(x1))
+        #print("Layer 4")
+        #print(x1)
+
         x1 = self.max2(x1)
+        #print("Size Check ")
+        #print(x1.size())
 
         x1 = x1.view(-1, 10*10*256)
 
+
         #x1 = self.drop(self.linear(13*13*256,500))
         # Features for the x2
+        x2 = self.conv1(x2)
 
-        x2 = F.relu(self.conv1(x2))
+        x2 = F.relu(x2)
+
         x2 = self.max1(x2)
         
         x2 = F.relu(self.conv2(x2))
         x2 = self.max2(x2)
 
+
         x2 = x2.view(-1, 10*10*256)
+
 
         #x2 = self.drop(self.linear(13*13*256,500))
 
@@ -82,15 +104,25 @@ class TCNN(torch.nn.Module):
         
     def forward(self, x1 , x2 ):
         x1, x2 = self.pretrain(x1, x2)
+
         x12= torch.cat((x1,x2),1)
+        counter =0 
+        for i in range (2*10*10*256):
+            if x12[:,i].data[0]>0.1: 
+                counter = counter +1 
+        #print(counter)
+        #print(x12)
         x = self.linear(x12)
+        #print(x)
 
         x = F.relu(x)
         x = self.drop(x)
+        #print(x.size())
 
         #print(x.size())
         x1 = x[:,0:7]
         x2 = x[:,7:14]
+        # print(x2)
         x3 = x[:,14:35]  
         
         #print(x1)

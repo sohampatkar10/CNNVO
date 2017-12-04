@@ -92,7 +92,7 @@ class TCNN_Train(torch.nn.Module):
             loss = L1 + L2 + L3 
             loss.backward()
             optimizer.step()
-            print(loss.data[0])
+            #print(loss.data[0])
             return loss.data[0]
 
     def predict(data, batch_size, image_size):
@@ -103,7 +103,7 @@ class TCNN_Train(torch.nn.Module):
             labels  = data["pose"]
 
             model.train()
-                
+            #print(x1.size())
             x1 = autograd.Variable(x1)
             x1= x1.view(batch_size,3,image_size,image_size)
             #x1 =x1.cuda()
