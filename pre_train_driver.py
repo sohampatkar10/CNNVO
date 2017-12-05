@@ -25,7 +25,6 @@ batch_size = 16
 c =3
 
 model1 = PreTrain()
-# model1.load_state_dict(torch.load("./model_pretrain"))
 model2 = PreTrain_TCNN()
 
 model1.train()
@@ -45,14 +44,14 @@ for counter, d in enumerate(trainloader,0):
 	x1, y = d
 	x1 = autograd.Variable(x1, requires_grad= False)
 
-	x1 = x1.type(torch.FloatTensor)
+	x1 = x1.type(torch.cuda.FloatTensor)
 	# x1 = x1.view(-1, 3*32*32)
 	y = autograd.Variable(y, requires_grad= False)
 	optimizer.zero_grad()
 
 	y_hat = model2(model1(x1))
 
-	y_hat.type(torch.FloatTensor)
+	y_hat.type(torch.cuda.FloatTensor)
 
 	loss= F.cross_entropy(y_hat, y)
 
@@ -60,8 +59,8 @@ for counter, d in enumerate(trainloader,0):
 	optimizer.step()
 	print("i = ", counter, "loss = ", loss.data[0])
 
-torch.save(model1.state_dict(),"./model1_pretrain")
-torch.save(model2.state_dict(),"./model2_pretrain")
+torch.save(model1.state_dict(),"./model1_pretrain.pt")
+torch.save(model2.state_dict(),"./model2_pretrain.pt")
 
 
 
