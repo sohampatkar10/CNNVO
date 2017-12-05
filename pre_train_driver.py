@@ -6,6 +6,7 @@ from torch import autograd
 import torch.nn.functional as F
 from random import randint
 import torch.nn as nn
+import torchvision.transforms as transforms
 
 import cv2
 import random 
@@ -22,52 +23,48 @@ epochs = 1
 batch_size = 16
 c =3
 
-model1 = PreTrain()
-model2 = PreTrain_TCNN()
-optimizer = torch.optim.Adam([
-                {'params': model1.parameters()},
-                {'params': model2.parameters()}], lr=1e-4)
-model1.train()
-model2.train() 
+# model1 = PreTrain()
+# model2 = PreTrain_TCNN()
+# optimizer = torch.optim.Adam([
+#                 {'params': model1.parameters()},
+#                 {'params': model2.parameters()}], lr=1e-4)
+# model1.train()
+# model2.train()
 
-#ptp = torchvision.datasets.CIFAR10('../',download=True, train=True)
+model = SimpleLinearModel()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-ptp = PreTrainParser()
-ptp = DataLoader(ptp, batch_size= 1, shuffle=True) 
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-def train_labeled_class(data):
-	counter = 0
-	for d in data:
-		counter = counter +1
-		x1 = d["img1"]
-		y  = d["digit"]
-			
-		x1 = autograd.Variable(x1,requires_grad= False)
-		# x1= x1.view(batch_size, c, height, width)
-		x1 = x1.type(torch.FloatTensor)
+trainset = torchvision.datasets.CIFAR10(root='../', train=True,
+                                        download=True, transform = transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                          shuffle=True, num_workers=2)
 
-		y = autograd.Variable(y,requires_grad= False)
+for counter, d in enumerate(trainloader,0):
+	x1, y = d
+	x1 = autograd.Variable(x1, requires_grad= False)
 
-		optimizer.zero_grad()
+	x1 = x1.type(torch.FloatTensor)
+	print (x1.size())
+	# x1.view(4, 1, 3*32*32)
+	y = autograd.Variable(y, requires_grad= False)
+	optimizer.zero_grad()
 
-		temp_yhat = model1(x1)
-		y_hat = model2(temp_yhat)
+	y_hat = model(x1)
 
-		y_hat.type(torch.FloatTensor)
+	y_hat.type(torch.FloatTensor)
 
-		loss= F.cross_entropy(y_hat, y)
+	loss= F.cross_entropy(y_hat, y)
 
-		loss.backward()
-		optimizer.step()
-		print(loss.data[0])
+	loss.backward()
+	optimizer.step()
+	if (counter % 2000 == 0):
+		print("i = ", counter, "loss = ", loss.data[0])
 
-		print(counter)
-
-
-for i in range(epochs):
-	train_labeled_class(ptp)
-
-torch.save(model1.state_dict(),"./model_pretrain") 
+# torch.save(model1.state_dict(),"./model_pretrain") 
 
 
 
