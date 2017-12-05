@@ -33,16 +33,17 @@ model2.train()
 #ptp = torchvision.datasets.CIFAR10('../',download=True, train=True)
 
 ptp = PreTrainParser()
-ptp = DataLoader(ptp, batch_size= 16, shuffle=True) 
+ptp = DataLoader(ptp, batch_size= 1, shuffle=True) 
 
 def train_labeled_class(data):
 	counter = 0
-	for d in data: 
+	for d in data:
+		counter = counter +1
 		x1 = d["img1"]
 		y  = d["digit"]
 			
 		x1 = autograd.Variable(x1,requires_grad= False)
-		x1= x1.view(batch_size, c, height, width)
+		# x1= x1.view(batch_size, c, height, width)
 		x1 = x1.type(torch.FloatTensor)
 
 		y = autograd.Variable(y,requires_grad= False)
@@ -60,7 +61,6 @@ def train_labeled_class(data):
 		optimizer.step()
 		print(loss.data[0])
 
-		counter = counter +1  
 		print(counter)
 
 
