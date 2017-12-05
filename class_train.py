@@ -34,8 +34,8 @@ class Train(torch.nn.Module):
 class TCNN_Train(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = torch.nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0)
-        self.conv2 = torch.nn.Conv2d(256, 128, kernel_size=2, stride=1, padding=0)
+        self.conv1 = torch.nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=0)
+        self.conv2 = torch.nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=0)
         self.drop = torch.nn.Dropout(p=0.5)
         self.linear = torch.nn.linear(2*NO, 60)
         
