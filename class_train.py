@@ -62,35 +62,31 @@ class TCNN_Train(torch.nn.Module):
         for d in data: 
             x1 = data["img_l"]
             x2 = data["img_r"]
-            labels  = data["pose"]
+            label  = data["dx"]
 
             model.train()
                 
-            x1 = autograd.Variable(x1)
+            x1 = autograd.Variable(x1.cuda())
             x1= x1.view(batch_size,3,image_size,image_size)
-            #x1 =x1.cuda()
 
-            x2 = autograd.Variable(x2)
+            x2 = autograd.Variable(x2.cuda())
             x2= x2.view(batch_size,3,image_size,image_size)
-            #x2=x2.cuda()
 
-            y = autograd.Variable(labels)
-            y = y.type(torch.FloatTensor)
-            #y =y.cuda()
+            y = autograd.Variable(label.cuda())
          
             optimizer.zero_grad()
             
             y_hat_= model(x1, x2)
             y_hat_= y_hat_.view(-1)
-            y1 = pose[:,1]
-            y2 = pose[:,2]
-            y3 = pose[:,3]
-            l1 = F.cross_entropy(y_hat_, y)
-            l2 = F.cross_entropy(y_hat_, y)
-            l3 = F.cross_entropy(y_hat_, y)
+            
+	    
+	    l1 = F.cross_entropy(y_hat_, y)
+            #l2 = F.cross_entropy(y_hat_, y)
+            #l3 = F.cross_entropy(y_hat_, y)
 
-            loss = L1 + L2 + L3 
-            loss.backward()
+            #loss = L1 + L2 + L3 
+            loss = l1;
+	    loss.backward()
             optimizer.step()
             #print(loss.data[0])
             return loss.data[0]

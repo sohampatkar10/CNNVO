@@ -27,8 +27,11 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=4,
 model1 = PreTrain()
 model2 = PreTrain_TCNN()
 
-model1.load_state_dict(torch.load("./model1_pretrain"))
-model2.load_state_dict(torch.load("./model2_pretrain"))
+model1.load_state_dict(torch.load("./model1_pretrain.pt"))
+model2.load_state_dict(torch.load("./model2_pretrain.pt"))
+
+model1.cuda()
+model2.cuda()
 
 model1.eval()
 model2.eval()
@@ -36,11 +39,13 @@ model2.eval()
 correct = 0
 total = 0
 for data in testloader:
-    images, labels = data
-    outputs = model2(model1(autograd.Variable(images)))
+    images, labels = data	
+    outputs = model2(model1(autograd.Variable(images.cuda())))
     _, predicted = torch.max(outputs.data, 1)
     total += labels.size(0)
-    correct += (predicted == labels).sum()
+    correct += (predicted == labels.cuda()).sum()
 
+print "correct = ", correct
+print "total = ", total
 print('Accuracy of the network on the 10000 test images: %d %%' % (
     100 * correct / total))

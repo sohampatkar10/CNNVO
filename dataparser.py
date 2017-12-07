@@ -87,6 +87,6 @@ class DataParser(Dataset):
 
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_r1": img_r1, "img_l2": img_l2, "img_r2": img_r2, "pose": (lx, lz, lt), "dt": dt}
+        data = {"img_l1": img_l1, "img_r1": img_r1, "img_l2": img_l2, "img_r2": img_r2, "dx":lx,  "dz": lz, "dth": lt, "dt": dt}
 
         return data
