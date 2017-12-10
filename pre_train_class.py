@@ -27,7 +27,6 @@ class PreTrain(torch.nn.Module):
         x1 = self.max1(x1)
         x1 = F.relu(self.conv2(x1))
         x1 = self.max2(x1)
-        x1 = x1.view(-1, 14*14*256)
         return x1 
 
 class PreTrain_TCNN(torch.nn.Module):
@@ -37,6 +36,7 @@ class PreTrain_TCNN(torch.nn.Module):
         self.linear2 = torch.nn.Linear(1000, 10)
 
     def forward(self, x1):
+        x1 = x1.view(-1, 14*14*256)
         x1 = F.relu(self.linear1(x1))
         x1 = F.relu(self.linear2(x1))
         return x1
