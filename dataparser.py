@@ -17,9 +17,9 @@ class DataParser(Dataset):
     def __init__(self, sequence, root_dir="../kitti_datasets"):
         print "loading data from sequence", sequence
         # Right images
-        self.filenames_im2 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_2/*.png')]
-        self.filenames_im2 = self.filenames_im2[0]
-        self.filenames_im2.sort()
+#        self.filenames_im2 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_2/*.png')]
+#        self.filenames_im2 = self.filenames_im2[0]
+#        self.filenames_im2.sort()
 
         # Left images
         self.filenames_im3 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_3/*.png')]
@@ -49,10 +49,10 @@ class DataParser(Dataset):
     def __getitem__(self,idx):
 
         # frame at timestep t 
-        img_r1 = cv2.imread(self.filenames_im2[idx])
-        img_r1 = cv2.resize(img_r1, (128, 128))
-        img_r1 = np.transpose(img_r1, (2,0,1))
-        img_r1 = img_r1/(np.max(img_r1)-np.min(img_r1))
+#        img_r1 = cv2.imread(self.filenames_im2[idx])
+#        img_r1 = cv2.resize(img_r1, (128, 128))
+#        img_r1 = np.transpose(img_r1, (2,0,1))
+#        img_r1 = img_r1/(np.max(img_r1)-np.min(img_r1))
 
         img_l1 = cv2.imread(self.filenames_im3[idx])
         img_l1 = cv2.resize(img_l1, (128, 128))
@@ -60,10 +60,10 @@ class DataParser(Dataset):
         img_l1 = img_l1/(np.max(img_l1)-np.min(img_l1))
 
         # frame at timestep t+1
-        img_r2 = cv2.imread(self.filenames_im2[idx+1])
-        img_r2 = cv2.resize(img_r2, (128, 128))
-        img_r2 = np.transpose(img_r2, (2,0,1))
-        img_r2 = img_r2/(np.max(img_r2)-np.min(img_r2))
+#        img_r2 = cv2.imread(self.filenames_im2[idx+1])
+#        img_r2 = cv2.resize(img_r2, (128, 128))
+#        img_r2 = np.transpose(img_r2, (2,0,1))
+#        img_r2 = img_r2/(np.max(img_r2)-np.min(img_r2))
 
         img_l2 = cv2.imread(self.filenames_im3[idx+1])
         img_l2 = cv2.resize(img_l2, (128, 128))
@@ -96,6 +96,6 @@ class DataParser(Dataset):
 
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_r1": img_r1, "img_l2": img_l2, "img_r2": img_r2, "dx":lx,  "dz": lz, "dth": lt, "dt": dt}
+        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":lx,  "dz": lz, "dth": lt, "dt": dt}
 
         return data

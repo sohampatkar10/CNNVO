@@ -56,9 +56,9 @@ for counter, d in enumerate(testloader,0):
 	y_hat = model2(f) 
 	y_hat.type(dtype)
 
-  	y_hx = y_hat[:,0:21]
-  	y_hz = y_hat[:, 21:42]
-  	y_ht = y_hat[:, 42:63]
+  	y_hx = y_hat[:,0:20]
+  	y_hz = y_hat[:, 20:40]
+  	y_ht = y_hat[:, 40:60]
 
     	_, predicted_x = torch.max(y_hx.data, 1)
     	_, predicted_z = torch.max(y_hz.data, 1)
