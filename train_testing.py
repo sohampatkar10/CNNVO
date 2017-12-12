@@ -14,6 +14,7 @@ import random
 from random import uniform
 from pre_train_class import *
 from class_train import *
+from dataparser import DataParser
 
 model1 = BCNN().cuda()
 model2 = TCNN().cuda()
@@ -24,14 +25,15 @@ model2.load_state_dict(torch.load("./tcnn_model.pt"))
 model1.eval()
 model2.eval()
 
-testset = DataParser('01')
-testloader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle = True)
+testset = DataParser('04')
+testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
-
-correct = 0
+correct_x = 0
+correct_z = 0
+correct_t = 0
 total = 0
 
-for counter, d in enumerate(trainloader,0):
+for counter, d in enumerate(testloader,0):
 	dtype = torch.cuda.FloatTensor
 	x1 = d["img_l1"].type(dtype)
 	x2 = d["img_l2"].type(dtype)
@@ -45,7 +47,6 @@ for counter, d in enumerate(trainloader,0):
 	yx = autograd.Variable(yx.cuda(), requires_grad= False)
 	yz = autograd.Variable(yz.cuda(), requires_grad= False)
 	yt = autograd.Variable(yt.cuda(), requires_grad= False)
-	optimizer.zero_grad()
 
 	f1 = model1(x1)
 	f2 = model1(x2)
@@ -55,11 +56,22 @@ for counter, d in enumerate(trainloader,0):
 	y_hat = model2(f) 
 	y_hat.type(dtype)
 
-    _, predicted = torch.max(outputs.data, 1)
-    total += yx.size(0)
-    correct += (predicted[:,0]==yx and predicted[:,1]==yz and predicted[:,2]==yt).sum()
+  	y_hx = y_hat[:,0:21]
+  	y_hz = y_hat[:, 21:42]
+  	y_ht = y_hat[:, 42:63]
 
+    	_, predicted_x = torch.max(y_hx.data, 1)
+    	_, predicted_z = torch.max(y_hz.data, 1)
+    	_, predicted_t = torch.max(y_ht.data, 1)
+    	total += yx.size(0)
+ 	correct_x += (predicted_x==yx.data).sum()
+ 	correct_z += (predicted_z==yz.data).sum()
+ 	correct_t += (predicted_t==yt.data).sum()
 
-print "correct = ", correct
+print "correct x", correct_x
+print "correct z", correct_z
+print "correct t", correct_t
 print "total = ", total
-print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+print "x accuracy = ", correct_x/float(total)
+print "z accuracy = ", correct_z/float(total)
+print "t accuracy = ", correct_t/float(total)
