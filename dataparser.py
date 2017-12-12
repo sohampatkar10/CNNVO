@@ -83,15 +83,15 @@ class DataParser(Dataset):
         
         NUM_XY_CLASSES = 20
         NUM_TH_CLASSES = 20
-        
+
         for xy in range(NUM_XY_CLASSES):
-            if (0.2/20.0*(xy - 0.5) <= dx + 0.05 < 0.2/20.0*(xy + 0.5)):
+            if (0.4/20.0*(xy - 0.5) <= dx + 0.2 < 0.4/20.0*(xy + 0.5)):
                 lx = xy
-            if (2.0/20.0*(xy - 0.5) <= dz - 0.9 < 2.0/20.0*(xy + 0.5)):
+            if (3.03/20.0*(xy - 0.5) <= dz + 0.03 < 3.03/20.0*(xy + 0.5)):
                 lz = xy
 
         for t in range(NUM_TH_CLASSES):
-            if (4.0/20.0*(t - 0.5) <= dth*180/3.14 + 0.5 < 4.0/20.0*(t + 0.5)):
+            if (9.0/20.0*(t - 0.5) <= dth*180/3.14 + 4.5 < 9.0/20.0*(t + 0.5)):
                 lt = t
 
         dt = self.times[idx+1] - self.times[idx]
