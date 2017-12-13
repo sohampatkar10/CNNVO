@@ -12,12 +12,14 @@ from dataparser import DataParser
 from pre_train_class import *
 import time
 
-model1 = BCNN().cuda()
-model2 = TCNN().cuda()
+model1 = BCNN()
+model2 = TCNN()
 
-#model1.load_state_dict(torch.load("./bcnn_model.pt"))
-#model2.load_state_dict(torch.load("./tcnn_model.pt"))
+model1.load_state_dict(torch.load("./bcnn_model.pt"))
+model2.load_state_dict(torch.load("./tcnn_model.pt"))
 
+model1.cuda()
+model2.cuda()
 
 optimizer = torch.optim.Adam((list(model1.parameters()) + list(model2.parameters())), lr=1e-4)
 
@@ -27,12 +29,13 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle = True
 testset = DataParser('04')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
-epochs=10
+epochs=20
 
 for e in range(epochs):
  model1.train()
  model2.train()
  print "epoch = ", e
+ ts = time.time()
  for counter, d in enumerate(trainloader,0):
   dtype = torch.cuda.FloatTensor
   x1 = d["img_l1"].type(dtype)
@@ -55,8 +58,8 @@ for e in range(epochs):
 
   y_hat = model2(f) 
   y_hat.type(dtype)
-  y_hx = y_hat[:,0:20]
-  y_hz = y_hat[:, 20:40]
+  y_hz = y_hat[:,0:20]
+  y_hx = y_hat[:, 20:40]
   y_ht = y_hat[:, 40:60]
 
   l1 = F.cross_entropy(y_hx, yx).cuda()
@@ -69,10 +72,10 @@ for e in range(epochs):
   optimizer.step()
   optimizer.zero_grad()
  
-  print "i = ", counter, "loss = ", loss.data[0] 
+ print "e = ", e, "loss = ", loss.data[0] 
  torch.save(model1.state_dict(),"./bcnn_model.pt")
  torch.save(model2.state_dict(),"./tcnn_model.pt")
-
+ 
  correct_x = 0
  correct_z = 0
  correct_t = 0
@@ -80,7 +83,8 @@ for e in range(epochs):
 
  model1.eval()
  model2.eval()
- for counter, d in enumerate(testloader,0):
+ if e%4==0:
+  for counter, d in enumerate(testloader,0):
         dtype = torch.cuda.FloatTensor
         x1 = d["img_l1"].type(dtype)
         x2 = d["img_l2"].type(dtype)
@@ -107,26 +111,23 @@ for e in range(epochs):
         y_hz = y_hat[:, 20:40]
         y_ht = y_hat[:, 40:60]
 
-        #_, predicted_x = torch.max(y_hx.data, 1)
+        _, predicted_x = torch.max(y_hx.data, 1)
         _, predicted_z = torch.max(y_hz.data, 1)
-        #_, predicted_t = torch.max(y_ht.data, 1)
+        _, predicted_t = torch.max(y_ht.data, 1)
 
 	total += yx.size(0)
-        #correct_x += (predicted_x==yx.data).sum()
+        correct_x += (predicted_x==yx.data).sum()
         correct_z += (predicted_z==yz.data).sum()
-        #correct_t += (predicted_t==yt.data).sum()
+        correct_t += (predicted_t==yt.data).sum()
 
- #print "correct x", correct_x
- print "correct z", correct_z
- #print "correct t", correct_t
- print "total = ", total
- #print "x accuracy = ", correct_x/float(total)
- print "z accuracy = ", correct_z/float(total)
- #print "t accuracy = ", correct_t/float(total)
-
-
-print "time taken = ", time.time()-ts 
-
+  print "correct x", correct_x
+  print "correct z", correct_z
+  print "correct t", correct_t
+  print "total = ", total
+  print "x accuracy = ", correct_x/float(total)
+  print "z accuracy = ", correct_z/float(total)
+  print "t accuracy = ", correct_t/float(total)
+ 
 
 
 

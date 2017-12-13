@@ -16,11 +16,14 @@ from pre_train_class import *
 from class_train import *
 from dataparser import DataParser
 
-model1 = BCNN().cuda()
-model2 = TCNN().cuda()
+model1 = BCNN()
+model2 = TCNN()
 
 model1.load_state_dict(torch.load("./bcnn_model.pt"))
 model2.load_state_dict(torch.load("./tcnn_model.pt"))
+
+model1 = model1.cuda()
+model2 = model2.cuda()
 
 model1.eval()
 model2.eval()
@@ -56,8 +59,8 @@ for counter, d in enumerate(testloader,0):
 	y_hat = model2(f) 
 	y_hat.type(dtype)
 
-  	y_hx = y_hat[:,0:20]
-  	y_hz = y_hat[:, 20:40]
+  	y_hz = y_hat[:,0:20]
+  	y_hx = y_hat[:, 20:40]
   	y_ht = y_hat[:, 40:60]
 
     	_, predicted_x = torch.max(y_hx.data, 1)
