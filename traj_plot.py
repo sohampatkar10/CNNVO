@@ -16,7 +16,7 @@ from pre_train_class import *
 from class_train import *
 from dataparser import DataParser
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 model1 = BCNN()
 model2 = TCNN()
@@ -39,8 +39,9 @@ err_z = 0
 err_t = 0
 
 xs, zs, ts = [], [], []
-xp, xp, tp = [], [], []
-
+xp, zp, tp = [], [], []
+ex = 0
+ez = 0
 gt = np.eye(4, dtype=float)
 
 for counter, d in enumerate(testloader,0):
@@ -66,9 +67,11 @@ for counter, d in enumerate(testloader,0):
   y_hat = model2(f) 
   y_hat.type(dtype)
 
-  dx = y_hat[:,0].numpy()
-  dz = y_hat[:, 1].numpy()
-  dth = y_hat[:, 2].numpy()
+  dx = y_hat[:,0].data.cpu().numpy()
+  dz = y_hat[:, 1].data.cpu().numpy()
+  dth = y_hat[:, 2].data.cpu().numpy()
+
+  print "predicted dth = ", dth, "actual dth = ", yt.data.cpu().numpy()
 
   dg = np.array([[np.cos(dth),0.0,np.sin(dth), dx],
                  [0.0, 1.0, 0.0, 0.0],
@@ -80,12 +83,22 @@ for counter, d in enumerate(testloader,0):
   xp.append(gt[0,3])
   zp.append(gt[2,3])
 
-  xs.append(d["x"].numpy())
-  zs.append(d["z"].numpy())
-  ts.append(d["t"].numpy())
+  xs.append(d["x"].cpu().numpy())
+  zs.append(d["z"].cpu().numpy())
+  ts.append(d["t"].cpu().numpy())
 
-plt.figure
-plt.plot(ts, zs)
-plt.plot(ts, zp)
+  print "actual x = ", d["z"].cpu().numpy(), "predicted x = ", gt[2,3]
+ 
+  ex += abs(gt[0,3]-d["x"].cpu().numpy())
+  ez += abs(gt[2,3]-d["z"].cpu().numpy())
 
-plt.savefig('./zs_plot.png')
+print "range x  = ", max(xs)-min(xs)
+print "total drift x = ",ex
+
+print "range z  = ", max(zs)-min(zs)
+print "total drift x = ", ez
+#plt.figure
+#plt.plot(ts, zs)
+#plt.plot(ts, zp)
+
+#plt.savefig('./zs_plot.png')
