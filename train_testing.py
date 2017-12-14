@@ -28,21 +28,21 @@ model2 = model2.cuda()
 model1.eval()
 model2.eval()
 
-testset = DataParser('01')
+testset = DataParser('04')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
-correct_x = 0
-correct_z = 0
-correct_t = 0
 total = 0
+err_x = 0
+err_z = 0
+err_t = 0
 
 for counter, d in enumerate(testloader,0):
 	dtype = torch.cuda.FloatTensor
 	x1 = d["img_l1"].type(dtype)
 	x2 = d["img_l2"].type(dtype)
-	yx = d["dx"].type(torch.cuda.LongTensor)
-	yz = d["dz"].type(torch.cuda.LongTensor)
-	yt = d["dth"].type(torch.cuda.LongTensor)
+	yx = d["dx"].type(dtype)
+	yz = d["dz"].type(dtype)
+	yt = d["dth"].type(dtype)
 	 
 	x1 = autograd.Variable(x1.cuda(), requires_grad= False)
 	x2 = autograd.Variable(x2.cuda(), requires_grad= False)
@@ -59,26 +59,15 @@ for counter, d in enumerate(testloader,0):
 	y_hat = model2(f) 
 	y_hat.type(dtype)
 
-  	y_hz = y_hat[:,0:6]
-  	y_hx = y_hat[:, 6:10]
-  	y_ht = y_hat[:, 10:15]
+  	y_hx = y_hat[:,0]
+  	y_hz = y_hat[:, 1]
+  	y_ht = y_hat[:, 2]
 
-    	_, predicted_x = torch.max(y_hx.data, 1)
-    	_, predicted_z = torch.max(y_hz.data, 1)
-    	_, predicted_t = torch.max(y_ht.data, 1)
+	total += yx.size(0)
+	err_x += abs((yx.data-y_hx.data).cpu().numpy()).sum()
+	err_z += abs((yz.data-y_hz.data).cpu().numpy()).sum()
+	err_t += abs((yt.data-y_ht.data).cpu().numpy()).sum()
 
- 	#print "predicted x = ", predicted_x, "lx = ", yx.data
-#	print "predicted z = ", predicted_z, "lz = ", yz.data
-	print "predicted t = ", predicted_t, "lt = ", yt.data
-    	total += yx.size(0)
- 	correct_x += (predicted_x==yx.data).sum()
- 	correct_z += (predicted_z==yz.data).sum()
- 	correct_t += (predicted_t==yt.data).sum()
-
-print "correct x", correct_x
-print "correct z", correct_z
-print "correct t", correct_t
-print "total = ", total
-print "x accuracy = ", correct_x/float(total)
-print "z accuracy = ", correct_z/float(total)
-print "t accuracy = ", correct_t/float(total)
+print "av err x = ", err_x/float(total)	
+print "av err z = ", err_z/float(total)	
+print "av err t = ", err_t/float(total)	

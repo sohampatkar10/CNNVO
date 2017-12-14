@@ -29,7 +29,7 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle = True
 testset = DataParser('04')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
-epochs=20
+epochs=15
 
 for e in range(epochs):
  model1.train()
@@ -40,9 +40,9 @@ for e in range(epochs):
   dtype = torch.cuda.FloatTensor
   x1 = d["img_l1"].type(dtype)
   x2 = d["img_l2"].type(dtype)
-  yx = d["dx"].type(torch.cuda.LongTensor)
-  yz = d["dz"].type(torch.cuda.LongTensor)
-  yt = d["dth"].type(torch.cuda.LongTensor)
+  yx = d["dx"].type(dtype)
+  yz = d["dz"].type(dtype)
+  yt = d["dth"].type(dtype)
  
   x1 = autograd.Variable(x1.cuda(), requires_grad= False)
   x2 = autograd.Variable(x2.cuda(), requires_grad= False)
@@ -64,7 +64,7 @@ for e in range(epochs):
 
   l1 = F.mse_loss(y_hx, yx).cuda()
   l2 = F.mse_loss(y_hz, yz).cuda()
-  l3 = F.mes_loss(y_ht, yt).cuda()
+  l3 = F.mse_loss(y_ht, yt).cuda()
   loss = l1 + l2 + l3
   #loss = l2
 
@@ -75,22 +75,23 @@ for e in range(epochs):
  print "e = ", e, "loss = ", loss.data[0] 
  torch.save(model1.state_dict(),"./bcnn_model.pt")
  torch.save(model2.state_dict(),"./tcnn_model.pt")
- 
- correct_x = 0
- correct_z = 0
- correct_t = 0
- total = 0
 
  model1.eval()
  model2.eval()
- if e%5==0:
+
+ total = 0
+ err_x = 0
+ err_z = 0
+ err_t = 0
+ 
+ if e%4==0:
   for counter, d in enumerate(testloader,0):
         dtype = torch.cuda.FloatTensor
         x1 = d["img_l1"].type(dtype)
         x2 = d["img_l2"].type(dtype)
-        yx = d["dx"].type(torch.cuda.LongTensor)
-        yz = d["dz"].type(torch.cuda.LongTensor)
-        yt = d["dth"].type(torch.cuda.LongTensor)
+        yx = d["dx"].type(dtype)
+        yz = d["dz"].type(dtype)
+        yt = d["dth"].type(dtype)
 
         x1 = autograd.Variable(x1.cuda(), requires_grad= False)
         x2 = autograd.Variable(x2.cuda(), requires_grad= False)
@@ -111,26 +112,14 @@ for e in range(epochs):
         y_hz = y_hat[:, 1]
         y_ht = y_hat[:, 2]
 
-        predicted_x = y_hx.data
-        predicted_z = y_hz.data
-        predicted_t = y_ht.data
-
         total += yx.size(0)
-        correct_x += (predicted_x==yx.data).sum()
-        correct_z += (predicted_z==yz.data).sum()
-        correct_t += (predicted_t==yt.data).sum()
+        err_x += abs((yx.data-y_hx.data).cpu().numpy()).sum()
+        err_z += abs((yz.data-y_hz.data).cpu().numpy()).sum()
+        err_t += abs((yt.data-y_ht.data).cpu().numpy()).sum()
 
-  print "correct x", correct_x
-  print "correct z", correct_z
-  print "correct t", correct_t
-  print "total = ", total
-  print "x accuracy = ", correct_x/float(total)
-  print "z accuracy = ", correct_z/float(total)
-  print "t accuracy = ", correct_t/float(total)
- 
-
-
-
+  print "av err x = ", err_x/float(total)
+  print "av err z = ", err_z/float(total)
+  print "av err t = ", err_t/float(total)
 
 
 
