@@ -80,25 +80,9 @@ class DataParser(Dataset):
 
         dt = self.times[idx+1] - self.times[idx]
         time = self.times[idx]
-        
-        NUM_X_CLASSES = 4
-	NUM_Y_CLASSES = 6
-        NUM_TH_CLASSES = 5
-
-        for xy in range(NUM_X_CLASSES):
-            if (0.4/4.0*(xy - 0.5) <= dx + 0.2 < 0.4/4.0*(xy + 0.5)):
-                lx = xy
-
-        for xy in range(NUM_Y_CLASSES):
-            if (3.03/6.0*(xy - 0.5) <= dz + 0.03 < 3.03/6.0*(xy + 0.5)):
-                lz = xy
-
-        for t in range(NUM_TH_CLASSES):
-            if (9.0/5.0*(t - 0.5) <= dth*180/3.14 + 4.5 < 9.0/5.0*(t + 0.5)):
-                lt = t
 
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":lx,  "dz": lz, "dth": lt, "dt": dt}
+        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":dx,  "dz": dz, "dth": dth, "dt": dt}
 
         return data

@@ -58,13 +58,13 @@ for e in range(epochs):
 
   y_hat = model2(f) 
   y_hat.type(dtype)
-  y_hz = y_hat[:,0:6]
-  y_hx = y_hat[:, 6:10]
-  y_ht = y_hat[:, 10:15]
+  y_hx = y_hat[:, 0]
+  y_hz = y_hat[:, 1]
+  y_ht = y_hat[:, 2]
 
-  l1 = F.cross_entropy(y_hx, yx).cuda()
-  l2 = F.cross_entropy(y_hz, yz).cuda()
-  l3 = F.cross_entropy(y_ht, yt).cuda()
+  l1 = F.mse_loss(y_hx, yx).cuda()
+  l2 = F.mse_loss(y_hz, yz).cuda()
+  l3 = F.mes_loss(y_ht, yt).cuda()
   loss = l1 + l2 + l3
   #loss = l2
 
@@ -107,15 +107,15 @@ for e in range(epochs):
         y_hat = model2(f)
         y_hat.type(dtype)
 
-        y_hx = y_hat[:,6:10]
-        y_hz = y_hat[:, 0:6]
-        y_ht = y_hat[:, 10:15]
+        y_hx = y_hat[:,0]
+        y_hz = y_hat[:, 1]
+        y_ht = y_hat[:, 2]
 
-        _, predicted_x = torch.max(y_hx.data, 1)
-        _, predicted_z = torch.max(y_hz.data, 1)
-        _, predicted_t = torch.max(y_ht.data, 1)
+        predicted_x = y_hx.data
+        predicted_z = y_hz.data
+        predicted_t = y_ht.data
 
-	total += yx.size(0)
+        total += yx.size(0)
         correct_x += (predicted_x==yx.data).sum()
         correct_z += (predicted_z==yz.data).sum()
         correct_t += (predicted_t==yt.data).sum()
