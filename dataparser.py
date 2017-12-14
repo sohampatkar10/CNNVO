@@ -71,6 +71,9 @@ class DataParser(Dataset):
         img_l2 = img_l2/(np.max(img_l2)-np.min(img_l2))
 
         gt = self.poses[idx].reshape(4,4)
+        x = gt[0,3]
+        z = gt[2,3]
+
         gt_1 = self.poses[idx+1].reshape(4,4)
 
         dg  = np.dot(np.linalg.inv(gt), gt_1)
@@ -83,6 +86,6 @@ class DataParser(Dataset):
 
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":dx,  "dz": dz, "dth": dth, "dt": dt}
+        data = {"img_l1": img_l1, "img_l2": img_l2, "x":x, "z":z, "dx":dx,  "dz": dz, "dth": dth, "dt": dt, "t": time}
 
         return data
