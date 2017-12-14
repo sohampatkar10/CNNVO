@@ -28,7 +28,7 @@ model2 = model2.cuda()
 model1.eval()
 model2.eval()
 
-testset = DataParser('04')
+testset = DataParser('01')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
 correct_x = 0
@@ -59,13 +59,17 @@ for counter, d in enumerate(testloader,0):
 	y_hat = model2(f) 
 	y_hat.type(dtype)
 
-  	y_hz = y_hat[:,0:20]
-  	y_hx = y_hat[:, 20:40]
-  	y_ht = y_hat[:, 40:60]
+  	y_hz = y_hat[:,0:6]
+  	y_hx = y_hat[:, 6:10]
+  	y_ht = y_hat[:, 10:15]
 
     	_, predicted_x = torch.max(y_hx.data, 1)
     	_, predicted_z = torch.max(y_hz.data, 1)
     	_, predicted_t = torch.max(y_ht.data, 1)
+
+ 	#print "predicted x = ", predicted_x, "lx = ", yx.data
+#	print "predicted z = ", predicted_z, "lz = ", yz.data
+	print "predicted t = ", predicted_t, "lt = ", yt.data
     	total += yx.size(0)
  	correct_x += (predicted_x==yx.data).sum()
  	correct_z += (predicted_z==yz.data).sum()

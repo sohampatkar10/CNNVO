@@ -58,9 +58,9 @@ for e in range(epochs):
 
   y_hat = model2(f) 
   y_hat.type(dtype)
-  y_hz = y_hat[:,0:20]
-  y_hx = y_hat[:, 20:40]
-  y_ht = y_hat[:, 40:60]
+  y_hz = y_hat[:,0:6]
+  y_hx = y_hat[:, 6:10]
+  y_ht = y_hat[:, 10:15]
 
   l1 = F.cross_entropy(y_hx, yx).cuda()
   l2 = F.cross_entropy(y_hz, yz).cuda()
@@ -83,7 +83,7 @@ for e in range(epochs):
 
  model1.eval()
  model2.eval()
- if e%4==0:
+ if e%5==0:
   for counter, d in enumerate(testloader,0):
         dtype = torch.cuda.FloatTensor
         x1 = d["img_l1"].type(dtype)
@@ -107,9 +107,9 @@ for e in range(epochs):
         y_hat = model2(f)
         y_hat.type(dtype)
 
-        y_hx = y_hat[:,0:20]
-        y_hz = y_hat[:, 20:40]
-        y_ht = y_hat[:, 40:60]
+        y_hx = y_hat[:,6:10]
+        y_hz = y_hat[:, 0:6]
+        y_ht = y_hat[:, 10:15]
 
         _, predicted_x = torch.max(y_hx.data, 1)
         _, predicted_z = torch.max(y_hz.data, 1)

@@ -32,7 +32,7 @@ class TCNN(torch.nn.Module):
         self.conv2 = torch.nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=0)
         self.drop = torch.nn.Dropout(p=0.5)
         self.linear1 = torch.nn.Linear(50*104*128, 500)
-        self.linear2 = torch.nn.Linear(500, 60)
+        self.linear2 = torch.nn.Linear(500, 15)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
