@@ -35,15 +35,15 @@ for e in range(epochs):
  model1.train()
  model2.train()
  print "epoch = ", e
- ts = time.time()
  for counter, d in enumerate(trainloader,0):
+  ts = time.time()
   dtype = torch.cuda.FloatTensor
   x1 = d["img_l1"].type(dtype)
   x2 = d["img_l2"].type(dtype)
   yx = d["dx"].type(dtype)
   yz = d["dz"].type(dtype)
   yt = d["dth"].type(dtype)
- 
+  print "time for data loading = ", time.time()-ts 
   x1 = autograd.Variable(x1.cuda(), requires_grad= False)
   x2 = autograd.Variable(x2.cuda(), requires_grad= False)
   
@@ -62,10 +62,12 @@ for e in range(epochs):
   y_hz = y_hat[:, 1]
   y_ht = y_hat[:, 2]
 
-  l1 = F.mse_loss(y_hx, yx).cuda()
-  l2 = F.mse_loss(y_hz, yz).cuda()
-  l3 = F.mse_loss(y_ht, yt).cuda()
+  ts = time.time()
+  l1 = F.mse_loss(y_hx, yx)
+  l2 = F.mse_loss(y_hz, yz)
+  l3 = F.mse_loss(y_ht, yt)
   loss = l1 + l2 + l3
+  print "time for loss comp = ", time.time()-ts
   #loss = l2
 
   loss.backward()
