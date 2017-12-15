@@ -38,14 +38,51 @@ class DataParser(Dataset):
             self.poses[i][0:12] = pose_str[i].split()
             self.poses[i][12:16] = [0.0, 0.0, 0.0, 1.0]
 
+        self.dx = np.zeros(self.poses.shape[0]-1, dtype=np.float)
+        self.dz = np.zeros(self.poses.shape[0]-1, dtype=np.float)
+        self.dth = np.zeros(self.poses.shape[0]-1, dtype=np.float)
+
+        for j in range(self.poses.shape[0]-1):
+            gt = self.poses[j].reshape(4,4)
+            x = gt[0,3]
+            z = gt[2,3]
+
+            gt_1 = self.poses[j+1].reshape(4,4)
+
+            dg  = np.dot(np.linalg.inv(gt), gt_1)
+            dx = dg[0,3]
+            dz = dg[2,3]
+            dth = G.G_to_rpy(dg)[1]
+
+            self.dx[j] = dx
+            self.dz[j] = dz
+            self.dth[j] = dth
+
+        self.mean_dx = np.mean(self.dx)
+        self.mean_dz = np.mean(self.dz)
+        self.mean_dth = np.mean(self.dth)
+
+        self.std_dx = np.std(self.dx)
+        self.std_dz = np.std(self.dz)
+        self.std_dth = np.std(self.dth)
+
+        self.dx = (self.dx - np.mean(self.dx))/np.std(self.dx)
+        self.dz = (self.dz - np.mean(self.dz))/np.std(self.dz)
+        self.dth = (self.dth - np.mean(self.dth))/np.std(self.dth)
+
+        self.dx = torch.from_numpy(self.dx).type(torch.cuda.FloatTensor)
+        self.dz = torch.from_numpy(self.dz).type(torch.cuda.FloatTensor)
+        self.dth = torch.from_numpy(self.dth).type(torch.cuda.FloatTensor)
+
         self.im_np = np.zeros((self.times.shape[0],3,128,128))
         for idx in range(len(self.filenames_im3)):
             img_l1 = cv2.imread(self.filenames_im3[idx])
             img_l1 = cv2.resize(img_l1, (128, 128))
             img_l1 = np.transpose(img_l1, (2,0,1))
-            img_l1 = img_l1/(np.max(img_l1)-np.min(img_l1))
-
             self.im_np[idx] = img_l1
+
+        self.im_np = (self.im_np - np.mean(self.im_np))/np.std(self.im_np)
+        self.im_np = torch.from_numpy(self.im_np).type(torch.cuda.FloatTensor)
 
     def __len__(self):
         return self.times.shape[0]-1
@@ -54,22 +91,15 @@ class DataParser(Dataset):
 
         img_l1 = self.im_np[idx]
         img_l2 = self.im_np[idx+1]
-        gt = self.poses[idx].reshape(4,4)
-        x = gt[0,3]
-        z = gt[2,3]
-
-        gt_1 = self.poses[idx+1].reshape(4,4)
-
-        dg  = np.dot(np.linalg.inv(gt), gt_1)
-        dx = dg[0,3]
-        dz = dg[2,3]
-        dth = G.G_to_rpy(dg)[1]
+        dx = self.dx[idx]
+        dz = self.dz[idx]
+        dth = self.dth[idx]
 
         dt = self.times[idx+1] - self.times[idx]
         time = self.times[idx]
 
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_l2": img_l2, "x":x, "z":z, "dx":dx,  "dz": dz, "dth": dth, "dt": dt, "t": time}
+        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":dx,  "dz": dz, "dth": dth, "dt": dt, "t": time}
 
         return data
