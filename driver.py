@@ -39,11 +39,11 @@ for e in range(epochs):
   print "time between iterations = ", time.time()-ts
   ts = time.time()
   dtype = torch.FloatTensor
-  x1 = d["img_l1"].type(dtype)
-  x2 = d["img_l2"].type(dtype)
-  yx = d["dx"].type(dtype)
-  yz = d["dz"].type(dtype)
-  yt = d["dth"].type(dtype)
+  x1 = d["img_l1"]
+  x2 = d["img_l2"]
+  yx = d["dx"]
+  yz = d["dz"]
+  yt = d["dth"]
   print "time for data loading = ", time.time()-ts
   ts = time.time()
   x1 = autograd.Variable(x1, requires_grad= False)

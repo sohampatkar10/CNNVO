@@ -58,21 +58,21 @@ class DataParser(Dataset):
             self.dz[j] = dz
             self.dth[j] = dth
 
-        self.mean_dx = np.mean(self.dx)
-        self.mean_dz = np.mean(self.dz)
-        self.mean_dth = np.mean(self.dth)
+        #self.mean_dx = np.mean(self.dx)
+        #self.mean_dz = np.mean(self.dz)
+        #self.mean_dth = np.mean(self.dth)
 
-        self.std_dx = np.std(self.dx)
-        self.std_dz = np.std(self.dz)
-        self.std_dth = np.std(self.dth)
+        #self.std_dx = np.std(self.dx)
+        #self.std_dz = np.std(self.dz)
+        #self.std_dth = np.std(self.dth)
 
-        self.dx = (self.dx - np.mean(self.dx))/np.std(self.dx)
-        self.dz = (self.dz - np.mean(self.dz))/np.std(self.dz)
-        self.dth = (self.dth - np.mean(self.dth))/np.std(self.dth)
+        #self.dx = (self.dx - np.mean(self.dx))/np.std(self.dx)
+        #self.dz = (self.dz - np.mean(self.dz))/np.std(self.dz)
+        #self.dth = (self.dth - np.mean(self.dth))/np.std(self.dth)
 
-        self.dx = torch.from_numpy(self.dx).type(torch.cuda.FloatTensor)
-        self.dz = torch.from_numpy(self.dz).type(torch.cuda.FloatTensor)
-        self.dth = torch.from_numpy(self.dth).type(torch.cuda.FloatTensor)
+        self.dx = torch.from_numpy(self.dx).view(self.dx.shape[0],-1).type(torch.FloatTensor).cuda()
+        self.dz = torch.from_numpy(self.dz).view(self.dx.shape[0],-1).type(torch.FloatTensor).cuda()
+        self.dth = torch.from_numpy(self.dth).view(self.dx.shape[0],-1).type(torch.FloatTensor).cuda()
 
         self.im_np = np.zeros((self.times.shape[0],3,128,128))
         for idx in range(len(self.filenames_im3)):
@@ -82,7 +82,7 @@ class DataParser(Dataset):
             self.im_np[idx] = img_l1
 
         self.im_np = (self.im_np - np.mean(self.im_np))/np.std(self.im_np)
-        self.im_np = torch.from_numpy(self.im_np).type(torch.cuda.FloatTensor)
+        self.im_np = torch.from_numpy(self.im_np).type(torch.FloatTensor).cuda()
 
     def __len__(self):
         return self.times.shape[0]-1
@@ -94,7 +94,6 @@ class DataParser(Dataset):
         dx = self.dx[idx]
         dz = self.dz[idx]
         dth = self.dth[idx]
-
         dt = self.times[idx+1] - self.times[idx]
         time = self.times[idx]
 
