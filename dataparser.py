@@ -16,11 +16,6 @@ class DataParser(Dataset):
 
     def __init__(self, sequence, root_dir="../kitti_datasets"):
         print "loading data from sequence", sequence
-        # Right images
-#        self.filenames_im2 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_2/*.png')]
-#        self.filenames_im2 = self.filenames_im2[0]
-#        self.filenames_im2.sort()
-
         # Left images
         self.filenames_im3 = [glob.glob(root_dir+'/sequences/'+sequence+'/image_3/*.png')]
         self.filenames_im3 = self.filenames_im3[0]
@@ -43,33 +38,22 @@ class DataParser(Dataset):
             self.poses[i][0:12] = pose_str[i].split()
             self.poses[i][12:16] = [0.0, 0.0, 0.0, 1.0]
 
+        self.im_np = np.zeros((self.times.shape[0],3,128,128))
+        for idx in range(len(self.filenames_im3)):
+            img_l1 = cv2.imread(self.filenames_im3[idx])
+            img_l1 = cv2.resize(img_l1, (128, 128))
+            img_l1 = np.transpose(img_l1, (2,0,1))
+            img_l1 = img_l1/(np.max(img_l1)-np.min(img_l1))
+
+            self.im_np[idx] = img_l1
+
     def __len__(self):
         return self.times.shape[0]-1
 
     def __getitem__(self,idx):
 
-        # frame at timestep t 
-#        img_r1 = cv2.imread(self.filenames_im2[idx])
-#        img_r1 = cv2.resize(img_r1, (128, 128))
-#        img_r1 = np.transpose(img_r1, (2,0,1))
-#        img_r1 = img_r1/(np.max(img_r1)-np.min(img_r1))
-
-        img_l1 = cv2.imread(self.filenames_im3[idx])
-        img_l1 = cv2.resize(img_l1, (128, 128))
-        img_l1 = np.transpose(img_l1, (2,0,1))
-        img_l1 = img_l1/(np.max(img_l1)-np.min(img_l1))
-
-        # frame at timestep t+1
-#        img_r2 = cv2.imread(self.filenames_im2[idx+1])
-#        img_r2 = cv2.resize(img_r2, (128, 128))
-#        img_r2 = np.transpose(img_r2, (2,0,1))
-#        img_r2 = img_r2/(np.max(img_r2)-np.min(img_r2))
-
-        img_l2 = cv2.imread(self.filenames_im3[idx+1])
-        img_l2 = cv2.resize(img_l2, (128, 128))
-        img_l2 = np.transpose(img_l2, (2,0,1))
-        img_l2 = img_l2/(np.max(img_l2)-np.min(img_l2))
-
+        img_l1 = self.im_np[idx]
+        img_l2 = self.im_np[idx+1]
         gt = self.poses[idx].reshape(4,4)
         x = gt[0,3]
         z = gt[2,3]
