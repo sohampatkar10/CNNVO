@@ -41,34 +41,28 @@ class DataParser(Dataset):
         self.dx = np.zeros(self.poses.shape[0]-1, dtype=np.float)
         self.dz = np.zeros(self.poses.shape[0]-1, dtype=np.float)
         self.dth = np.zeros(self.poses.shape[0]-1, dtype=np.float)
+        self.x = np.zeros(self.poses.shape[0]-1, dtype=np.float)
+        self.z = np.zeros(self.poses.shape[0]-1, dtype=np.float)
 
         for j in range(self.poses.shape[0]-1):
             gt = self.poses[j].reshape(4,4)
             x = gt[0,3]
             z = gt[2,3]
-
+            self.x[j] = x
+            self.z[j] = z
             gt_1 = self.poses[j+1].reshape(4,4)
 
             dg  = np.dot(np.linalg.inv(gt), gt_1)
             dx = dg[0,3]
             dz = dg[2,3]
             dth = G.G_to_rpy(dg)[1]
+            self.dx[j] = (dx+0.1)/0.2
+            self.dz[j] = dz/1.5
+            self.dth[j] = (dth+0.06)/0.12
 
-            self.dx[j] = dx
-            self.dz[j] = dz
-            self.dth[j] = dth
-
-        #self.mean_dx = np.mean(self.dx)
-        #self.mean_dz = np.mean(self.dz)
-        #self.mean_dth = np.mean(self.dth)
-
-        #self.std_dx = np.std(self.dx)
-        #self.std_dz = np.std(self.dz)
-        #self.std_dth = np.std(self.dth)
-
-        #self.dx = (self.dx - np.mean(self.dx))/np.std(self.dx)
-        #self.dz = (self.dz - np.mean(self.dz))/np.std(self.dz)
-        #self.dth = (self.dth - np.mean(self.dth))/np.std(self.dth)
+        self.dx = np.clip(self.dx, 0.0, 1.0)
+        self.dz = np.clip(self.dz, 0.0, 1.0)
+        self.dth = np.clip(self.dth, 0.0, 1.0)
 
         self.dx = torch.from_numpy(self.dx).view(self.dx.shape[0],-1).type(torch.FloatTensor).cuda()
         self.dz = torch.from_numpy(self.dz).view(self.dx.shape[0],-1).type(torch.FloatTensor).cuda()
@@ -96,9 +90,10 @@ class DataParser(Dataset):
         dth = self.dth[idx]
         dt = self.times[idx+1] - self.times[idx]
         time = self.times[idx]
-
+        x = self.x[idx]
+        z = self.z[idx]
         dt = self.times[idx+1] - self.times[idx]
 
-        data = {"img_l1": img_l1, "img_l2": img_l2, "dx":dx,  "dz": dz, "dth": dth, "dt": dt, "t": time}
+        data = {"img_l1": img_l1, "img_l2": img_l2, "x":x, "z":z, "dx":dx,  "dz": dz, "dth": dth, "dt": dt, "t": time}
 
         return data
