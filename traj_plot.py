@@ -18,6 +18,9 @@ from dataparser import DataParser
 
 #import matplotlib.pyplot as plt
 
+def unnormalize(yx, yz, yt):
+  return (yx*0.2 - 0.1) ,(yz*1.5), yt*0.12-0.06
+
 model1 = BCNN()
 model2 = TCNN()
 
@@ -46,18 +49,20 @@ gt = np.eye(4, dtype=float)
 
 for counter, d in enumerate(testloader,0):
   dtype = torch.cuda.FloatTensor
-  x1 = d["img_l1"].type(dtype)
-  x2 = d["img_l2"].type(dtype)
-  yx = d["dx"].type(dtype)
-  yz = d["dz"].type(dtype)
-  yt = d["dth"].type(dtype)
+  x1 = d["img_l1"]
+  x2 = d["img_l2"]
+  yx = d["dx"]
+  yz = d["dz"]
+  yt = d["dth"]
+  t = d["t"]
+  ts.append(t)
 
-  x1 = autograd.Variable(x1.cuda(), requires_grad= False)
-  x2 = autograd.Variable(x2.cuda(), requires_grad= False)
+  x1 = autograd.Variable(x1, requires_grad= False)
+  x2 = autograd.Variable(x2, requires_grad= False)
 
-  yx = autograd.Variable(yx.cuda(), requires_grad= False)
-  yz = autograd.Variable(yz.cuda(), requires_grad= False)
-  yt = autograd.Variable(yt.cuda(), requires_grad= False)
+  yx = autograd.Variable(yx, requires_grad= False)
+  yz = autograd.Variable(yz, requires_grad= False)
+  yt = autograd.Variable(yt, requires_grad= False)
 
   f1 = model1(x1)
   f2 = model1(x2)
@@ -71,7 +76,7 @@ for counter, d in enumerate(testloader,0):
   dz = y_hat[:, 1].data.cpu().numpy()
   dth = y_hat[:, 2].data.cpu().numpy()
 
-  print "predicted dth = ", dth, "actual dth = ", yt.data.cpu().numpy()
+  dx, dz, dth = unnormalize(dx, dz, dth)
 
   dg = np.array([[np.cos(dth),0.0,np.sin(dth), dx],
                  [0.0, 1.0, 0.0, 0.0],
@@ -87,10 +92,8 @@ for counter, d in enumerate(testloader,0):
   zs.append(d["z"].cpu().numpy())
   ts.append(d["t"].cpu().numpy())
 
-  print "actual x = ", d["z"].cpu().numpy(), "predicted x = ", gt[2,3]
- 
-  ex += abs(gt[0,3]-d["x"].cpu().numpy())
-  ez += abs(gt[2,3]-d["z"].cpu().numpy())
+  ex += gt[0,3]-d["x"].cpu().numpy()
+  ez += gt[2,3]-d["z"].cpu().numpy()
 
 print "range x  = ", max(xs)-min(xs)
 print "total drift x = ",ex
