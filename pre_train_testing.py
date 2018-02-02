@@ -15,6 +15,11 @@ from random import uniform
 
 from pre_train_class import *
 
+"""
+Driver script for testing the pre-trained model
+"""
+
+# Load CIFAR-10 dataset
 transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -24,15 +29,15 @@ testset = torchvision.datasets.CIFAR10(root='../', train=True,
 testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                           shuffle=True, num_workers=2)
 
+# Load Models
 model1 = PreTrain()
 model2 = PreTrain_TCNN()
-
 model1.load_state_dict(torch.load("./model1_pretrain.pt"))
 model2.load_state_dict(torch.load("./model2_pretrain.pt"))
-
 model1.cuda()
 model2.cuda()
 
+# Set mode to eval
 model1.eval()
 model2.eval()
 

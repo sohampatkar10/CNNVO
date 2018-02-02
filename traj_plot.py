@@ -16,23 +16,30 @@ from pre_train_class import *
 from class_train import *
 from dataparser import DataParser
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
+"""
+Driver script to use frame-to-frame motion
+to propogate the pose and plot it.
+"""
+
+# Unnormalize data
 def unnormalize(yx, yz, yt):
   return (yx*0.2 - 0.1) ,(yz*1.5), yt*0.12-0.06
 
+#Instaitate models
 model1 = BCNN()
 model2 = TCNN()
-
 model1.load_state_dict(torch.load("./bcnn_model.pt"))
 model2.load_state_dict(torch.load("./tcnn_model.pt"))
-
 model1 = model1.cuda()
 model2 = model2.cuda()
 
+# Set mode to eval
 model1.eval()
 model2.eval()
 
+# Load testing data
 testset = DataParser('04')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = False)
 
@@ -95,13 +102,8 @@ for counter, d in enumerate(testloader,0):
   ex += gt[0,3]-d["x"].cpu().numpy()
   ez += gt[2,3]-d["z"].cpu().numpy()
 
-print "range x  = ", max(xs)-min(xs)
-print "total drift x = ",ex
+plt.figure
+plt.plot(ts, zs)
+plt.plot(ts, zp)
 
-print "range z  = ", max(zs)-min(zs)
-print "total drift x = ", ez
-#plt.figure
-#plt.plot(ts, zs)
-#plt.plot(ts, zp)
-
-#plt.savefig('./zs_plot.png')
+plt.savefig('./zs_plot.png')

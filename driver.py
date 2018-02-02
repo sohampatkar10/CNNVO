@@ -5,139 +5,82 @@ from torch import autograd
 import torch.nn.functional as F
 import torch.nn as nn
 import torchvision.transforms as transforms
+from torch.autograd import Variable
 import torchvision
 
 from class_train import BCNN, TCNN
 from dataparser import DataParser
 from pre_train_class import *
 import time
+"""
+Driver script for training the model
+"""
 
+#Instiate the models
 model1 = BCNN()
 model2 = TCNN()
 
+# Load models from last saved state
 model1.load_state_dict(torch.load("./bcnn_model.pt"))
 model2.load_state_dict(torch.load("./tcnn_model.pt"))
-
 model1.cuda()
 model2.cuda()
 
+# Set optimizer as Adam
 optimizer = torch.optim.Adam((list(model1.parameters()) + list(model2.parameters())), lr=1e-4)
 
+# Load Training data
 trainset = DataParser('01')
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle = True)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=8, shuffle = True)
 
+# Load testing data
 testset = DataParser('04')
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle = True)
 
+# criterion is MSELoss
+criterion = nn.MSELoss().cuda()
+
 epochs=15
-ts = time.time()
+i = 0
+
 for e in range(epochs):
- model1.train()
- model2.train()
- print "epoch = ", e
- for counter, d in enumerate(trainloader,0):
-  print "time between iterations = ", time.time()-ts
-  ts = time.time()
-  dtype = torch.FloatTensor
-  x1 = d["img_l1"]
-  x2 = d["img_l2"]
-  yx = d["dx"]
-  yz = d["dz"]
-  yt = d["dth"]
-  print "time for data loading = ", time.time()-ts
-  ts = time.time()
-  x1 = autograd.Variable(x1, requires_grad= False)
-  x2 = autograd.Variable(x2, requires_grad= False)
-  
-  yx = autograd.Variable(yx, requires_grad= False)
-  yz = autograd.Variable(yz, requires_grad= False)
-  yt = autograd.Variable(yt, requires_grad= False)
-  print "time for typecasting = ", time.time()-ts
-  ts = time.time()
-  f1 = model1(x1)
-  f2 = model1(x2)
-  print "time for 2 bcnns = ", time.time()-ts
-  ts = time.time()
-  f = torch.cat((f1, f2), 2)
-  y_hat = model2(f)
-  print "time for tcnn = ", time.time()-ts
+  model1.train()
+  model2.train()
 
   ts = time.time()
-  y_hat.type(dtype)
-  y_hx = y_hat[:, 0]
-  y_hz = y_hat[:, 1]
-  y_ht = y_hat[:, 2]
-  print "time for typecasting labesl = ", time.time()-ts
-  ts = time.time()
-  l1 = F.mse_loss(y_hx, yx)
-  l2 = F.mse_loss(y_hz, yz)
-  l3 = F.mse_loss(y_ht, yt)
-  loss = l1 + l2 + l3
-  print "time for loss comp = ", time.time()-ts
-  #loss = l2
+  for data in trainloader:
+    i += 1
 
-  ts = time.time()
-  loss.backward()
-  optimizer.step()
-  optimizer.zero_grad()
-  print "time for opti = ", time.time()-ts
-  ts = time.time()
+    # Get images and labels from data
+    i1 = data["img_l1"]
+    i2 = data["img_l2"]
+    yx = data["dx"]
+    yz = data["dz"]
+    yt = data["dth"]
 
- print "e = ", e, "loss = ", loss.data[0] 
- torch.save(model1.state_dict(),"./bcnn_model.pt")
- torch.save(model2.state_dict(),"./tcnn_model.pt")
+    # Convert to torch Variable
+    i1 = Variable(i1)
+    i2 = Variable(i2)
+    yx = Variable(yx)
+    yz = Variable(yz)
+    yt = Variable(yt)
 
- # model1.eval()
- # model2.eval()
+    # Give inputs to BCNN
+    f1 = model1(i1)
+    f2 = model1(i2)
 
- # total = 0
- # err_x = 0
- # err_z = 0
- # err_t = 0
+    # Concatenate and give input to TCNN
+    yh = model2(torch.cat((f1, f2), 2))
+
+    # Compute loss
+    l1 = criterion(yh[:,0],yx)
+    l2 = criterion(yh[:,1],yz)
+    l3 = criterion(yh[:,2],yt)
+    loss = l1+l2+l3
+
+    # Backpropogation and weights update
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
  
- # if e%4==0:
- #  for counter, d in enumerate(testloader,0):
- #        dtype = torch.cuda.FloatTensor
- #        x1 = d["img_l1"].type(dtype)
- #        x2 = d["img_l2"].type(dtype)
- #        yx = d["dx"].type(dtype)
- #        yz = d["dz"].type(dtype)
- #        yt = d["dth"].type(dtype)
-
- #        x1 = autograd.Variable(x1.cuda(), requires_grad= False)
- #        x2 = autograd.Variable(x2.cuda(), requires_grad= False)
-
- #        yx = autograd.Variable(yx.cuda(), requires_grad= False)
- #        yz = autograd.Variable(yz.cuda(), requires_grad= False)
- #        yt = autograd.Variable(yt.cuda(), requires_grad= False)
-
- #        f1 = model1(x1)
- #        f2 = model1(x2)
-
- #        f = torch.cat((f1, f2), 2)
-
- #        y_hat = model2(f)
- #        y_hat.type(dtype)
-
- #        y_hx = y_hat[:,0]
- #        y_hz = y_hat[:, 1]
- #        y_ht = y_hat[:, 2]
-
- #        total += yx.size(0)
- #        err_x += abs((yx.data-y_hx.data).cpu().numpy()).sum()
- #        err_z += abs((yz.data-y_hz.data).cpu().numpy()).sum()
- #        err_t += abs((yt.data-y_ht.data).cpu().numpy()).sum()
-
- #  print "av err x = ", err_x/float(total)
- #  print "av err z = ", err_z/float(total)
- #  print "av err t = ", err_t/float(total)
-
-
-
-
-
-
-
-
-
-
+  print "time for epoch = ", time.time()-ts

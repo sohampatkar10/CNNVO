@@ -3,7 +3,14 @@ import torch.nn
 from pre_train_class import *
 
 class BCNN(torch.nn.Module):
+    """
+    Base CNN
+    """
     def __init__(self, pretrain_model = "model1_pretrain.pt"):
+        """
+        Args:
+        pre_train_model: The .pt file in which the pretrained model is saved.
+        """
         super(BCNN, self).__init__()
         self.pretrain = PreTrain()
         self.pretrain.load_state_dict(torch.load(pretrain_model))
@@ -27,6 +34,9 @@ class BCNN(torch.nn.Module):
         return x
 
 class TCNN(torch.nn.Module):
+    """
+    Top CNN
+    """
     def __init__(self):
         super(TCNN, self).__init__()
         self.conv1 = torch.nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=0).cuda()
