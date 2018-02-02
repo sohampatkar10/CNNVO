@@ -1,4 +1,4 @@
-# CNNVO
+# CNNVO - Final Project for 603.661 Computer Vision
 ## Convolutional Neural Networks for Visual Odometry
 This is a pytorch-based package for doing Visual Odometry by estimating frame-to-frame motion using deep Siamese network.
 
