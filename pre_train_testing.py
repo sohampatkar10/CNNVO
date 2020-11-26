@@ -10,7 +10,7 @@ import torchvision
 from torch import autograd
 
 import cv2
-import random 
+import random
 from random import uniform
 
 from pre_train_class import *
@@ -25,9 +25,9 @@ transform = transforms.Compose(
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
 testset = torchvision.datasets.CIFAR10(root='../', train=True,
-                                        download=True, transform = transform)
+                                       download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=4,
-                                          shuffle=True, num_workers=2)
+                                         shuffle=True, num_workers=2)
 
 # Load Models
 model1 = PreTrain()
@@ -44,7 +44,7 @@ model2.eval()
 correct = 0
 total = 0
 for data in testloader:
-    images, labels = data	
+    images, labels = data
     outputs = model2(model1(autograd.Variable(images.cuda())))
     _, predicted = torch.max(outputs.data, 1)
     total += labels.size(0)
